@@ -8,16 +8,25 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.laerodev.androidtest.ambilight.AdaptiveLightActivity
 import com.laerodev.androidtest.inactivity.InactivityScreen
 import com.laerodev.androidtest.nfc.NfcActivity
 import com.laerodev.androidtest.nfc.NfcReaderButton
 import com.laerodev.androidtest.ui.theme.AndroidTestTheme
+import kotlin.jvm.java
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,7 +34,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AndroidTestTheme {
-                App()
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Button(onClick = {
+                        val intent = Intent(this@MainActivity, AdaptiveLightActivity::class.java)
+                        startActivity(intent)
+                    }) {
+                        Text("Adaptive Lighting")
+                    }
+
+
+                }
             }
         }
     }
@@ -54,6 +76,7 @@ fun App() {
         onLaunchNfcScan = { nfcResultLauncher.launch(Intent(it, NfcActivity::class.java)) }
     )
 }
+
 
 @Composable
 fun SetTimeOut() {
