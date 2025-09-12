@@ -1,5 +1,5 @@
 // MediaProjectionService.kt
-package com.laerodev.androidtest.ambilight
+package com.laerodev.androidtest.adaptive_light
 
 import android.app.Activity
 import android.app.NotificationChannel
@@ -14,12 +14,19 @@ import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.Surface
 import android.view.WindowManager
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationCompat
+import com.laerodev.androidtest.LRGB
 import com.laerodev.androidtest.R
 import com.laerodev.androidtest.api.sendRequest
 import io.ktor.http.HttpMethod
@@ -31,6 +38,13 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class MediaProjectionService : Service() {
+
+    var verticalOffset by mutableIntStateOf(40)
+    var horizontalOffset by mutableIntStateOf(40)
+
+    var fuzz by mutableStateOf(true)
+
+    var fuzzSampleSize by mutableIntStateOf(4)
 
     private var isCapturing = false
     private lateinit var mediaProjection: MediaProjection
@@ -112,7 +126,7 @@ class MediaProjectionService : Service() {
                     captureJob = coroutineScope.launch {
                         while (isActive) {
                             captureFrame()
-//                            delay(100)
+                            delay(100)
                         }
                         isCapturing = false
                     }
@@ -148,24 +162,32 @@ class MediaProjectionService : Service() {
             val pixels = IntArray(currentWidth * currentHeight)
             buffer.asIntBuffer().get(pixels)
 
-            val sampleSize = 9
             val averagedPixels = mutableListOf<Int>()
-
             val samplePointCoordinates =
                 getSamplePointCoordinates(currentWidth, currentHeight, orient)
 
-            for ((xPos, yPos) in samplePointCoordinates) {
-                val currentSamplePixels = mutableListOf<Int>()
-                for (y in -sampleSize until sampleSize) {
-                    for (x in -sampleSize until sampleSize) {
-                        val finalYPos = yPos + y
-                        val finalXPos = xPos + x
-                        if (finalYPos in 0 until currentHeight && finalXPos in 0 until currentWidth) {
-                            currentSamplePixels.add(pixels[finalYPos * currentWidth + finalXPos])
+            println("Fuzzing values: $fuzz")
+            if (fuzz) {
+                val sampleSize = fuzzSampleSize
+                for ((xPos, yPos) in samplePointCoordinates) {
+                    val currentSamplePixels = mutableListOf<Int>()
+                    for (y in -sampleSize until sampleSize) {
+                        for (x in -sampleSize until sampleSize) {
+                            val finalYPos = yPos + y
+                            val finalXPos = xPos + x
+                            if (finalYPos in 0 until currentHeight && finalXPos in 0 until currentWidth) {
+                                currentSamplePixels.add(pixels[finalYPos * currentWidth + finalXPos])
+                            }
                         }
                     }
+                    averagedPixels.add(averagePixels(currentSamplePixels))
                 }
-                averagedPixels.add(averagePixels(currentSamplePixels))
+            } else {
+                for ((xPos, yPos) in samplePointCoordinates) {
+                    if (yPos in 0 until currentHeight && xPos in 0 until currentWidth) {
+                        averagedPixels.add(pixels[yPos * currentWidth + xPos])
+                    }
+                }
             }
 
             val finalLEDValues = mapSamplesToLeds(averagedPixels, orient)
@@ -177,39 +199,41 @@ class MediaProjectionService : Service() {
     }
 
     private fun getSamplePointCoordinates(width: Int, height: Int, rotation: Int): List<Pair<Int, Int>> {
-        val offset = 50
+        println("Vertical offset of $verticalOffset")
+        println("Horizontal offset of $horizontalOffset")
+
         val points = mutableListOf<Pair<Int, Int>>()
 
         // Generate points for the standard landscape (ROTATION_0) orientation
         val landscapeWidth = if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) width else height
         val landscapeHeight = if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) height else width
 
-        val boundaryWidth = landscapeWidth - 2 * offset
-        val boundaryHeight = landscapeHeight - 2 * offset
+        val boundaryWidth = landscapeWidth - 2 * horizontalOffset
+        val boundaryHeight = landscapeHeight - 2 * verticalOffset
 
         // Left side points (top to bottom) starting with the top-left corner
-        points.add(Pair(offset, offset))
-        points.add(Pair(offset, offset + boundaryHeight / 4))
-        points.add(Pair(offset, offset + boundaryHeight / 2))
-        points.add(Pair(offset, offset + boundaryHeight / 4 * 3))
+        points.add(Pair(horizontalOffset, verticalOffset))
+        points.add(Pair(horizontalOffset, verticalOffset + boundaryHeight / 4))
+        points.add(Pair(horizontalOffset, verticalOffset + boundaryHeight / 2))
+        points.add(Pair(horizontalOffset, verticalOffset + boundaryHeight / 4 * 3))
 
         // Bottom side points (left to right)
-        points.add(Pair(offset, landscapeHeight - offset))
-        points.add(Pair(offset + boundaryWidth / 4, landscapeHeight - offset))
-        points.add(Pair(offset + boundaryWidth / 2, landscapeHeight - offset))
-        points.add(Pair(offset + boundaryWidth / 4 * 3, landscapeHeight - offset))
+        points.add(Pair(horizontalOffset, landscapeHeight - verticalOffset))
+        points.add(Pair(horizontalOffset + boundaryWidth / 4, landscapeHeight - verticalOffset))
+        points.add(Pair(horizontalOffset + boundaryWidth / 2, landscapeHeight - verticalOffset))
+        points.add(Pair(horizontalOffset + boundaryWidth / 4 * 3, landscapeHeight - verticalOffset))
 
         // Right side points (bottom to top)
-        points.add(Pair(landscapeWidth - offset, landscapeHeight - offset))
-        points.add(Pair(landscapeWidth - offset, offset + boundaryHeight / 4 * 3))
-        points.add(Pair(landscapeWidth - offset, offset + boundaryHeight / 2))
-        points.add(Pair(landscapeWidth - offset, offset + boundaryHeight / 4))
+        points.add(Pair(landscapeWidth - horizontalOffset, landscapeHeight - verticalOffset))
+        points.add(Pair(landscapeWidth - horizontalOffset, verticalOffset + boundaryHeight / 4 * 3))
+        points.add(Pair(landscapeWidth - horizontalOffset, verticalOffset + boundaryHeight / 2))
+        points.add(Pair(landscapeWidth - horizontalOffset, verticalOffset + boundaryHeight / 4))
 
         // Top side points (right to left)
-        points.add(Pair(landscapeWidth - offset, offset))
-        points.add(Pair(landscapeWidth - offset - boundaryWidth / 4, offset))
-        points.add(Pair(landscapeWidth - offset - boundaryWidth / 2, offset))
-        points.add(Pair(landscapeWidth - offset - boundaryWidth / 4 * 3, offset))
+        points.add(Pair(landscapeWidth - horizontalOffset, verticalOffset))
+        points.add(Pair(landscapeWidth - horizontalOffset - boundaryWidth / 4, verticalOffset))
+        points.add(Pair(landscapeWidth - horizontalOffset - boundaryWidth / 2, verticalOffset))
+        points.add(Pair(landscapeWidth - horizontalOffset - boundaryWidth / 4 * 3, verticalOffset))
 
         // Rotate the generated points based on the current orientation
         return points.map { (x, y) -> getRotatedPoint(x, y, rotation, width, height) }
@@ -259,6 +283,7 @@ class MediaProjectionService : Service() {
 
         when(orient) {
             Surface.ROTATION_0, Surface.ROTATION_180 -> {
+
                 // Physical Left Side (starts at index 0)
                 mapSide(finalValues, listOf(sampleValues[0], sampleValues[1], sampleValues[2], sampleValues[3], sampleValues[4]), shortSideLedCount-1, ledSamplesCountPerSide, 0)
                 // Physical Bottom Side
@@ -317,13 +342,19 @@ class MediaProjectionService : Service() {
         }
         return lrgbList
     }
-
     suspend fun setLRGB(values: List<LRGB>) {
         val res = values.joinToString(separator = ";") {
             "${it.L},${it.R},${it.G},${it.B}"
         }
         println(sendRequest(HttpMethod.Get, "/setLeds", mapOf ("lrgb" to res)))
     }
+
+    inner class MyBinder : Binder() {
+        fun getService(): MediaProjectionService = this@MediaProjectionService
+    }
+
+    private val binder = MyBinder()
+
 
     override fun onDestroy() {
         super.onDestroy()
@@ -334,8 +365,14 @@ class MediaProjectionService : Service() {
         isCapturing = false
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+    override fun onBind(intent: Intent): IBinder {
+        // Must call super.onBind for LifecycleService
+        Log.d("MediaProjectionService", "Service bound")
+        return binder
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        return super.onUnbind(intent)
     }
 
 }

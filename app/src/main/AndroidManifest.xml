@@ -30,9 +30,9 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ambilight.AdaptiveLightActivity"
+            android:name=".adaptive_light.AdaptiveLightActivity"
             android:exported="false"
-            android:label="Ambilight"
+            android:label="Adaptive Lighting"
             android:theme="@style/Theme.AndroidTest"
             />
         <activity android:name=".nfc.NfcActivity"
@@ -53,9 +53,27 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".test.TestActivity"
+            android:exported="false"
+            android:label="Test"
+            android:theme="@style/Theme.AndroidTest"
+            />
+        <activity
+            android:name=".led.LedActivity"
+            android:exported="false"
+            android:label="Led"
+            android:theme="@style/Theme.AndroidTest"
+            />
+        <activity
+            android:name=".led.SSeriesLedDemoActivity"
+            android:exported="false"
+            android:label="SSeriesLedDemo"
+            android:theme="@style/Theme.AndroidTest"
+            />
 
         <service
-            android:name=".ambilight.MediaProjectionService"
+            android:name=".adaptive_light.MediaProjectionService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaProjection"
