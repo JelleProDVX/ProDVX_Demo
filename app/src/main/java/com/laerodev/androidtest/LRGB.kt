@@ -1,4 +1,4 @@
-package com.laerodev.androidtest.ambilight
+package com.laerodev.androidtest
 
 data class LRGB(
     val L: Int,
