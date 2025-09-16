@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.laerodev.androidtest"
+    namespace = "com.prodvx.prodvx_demo"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.laerodev.androidtest"
+        applicationId = "com.prodvx.prodvx_demo"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation("io.coil-kt:coil-compose:2.7.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
