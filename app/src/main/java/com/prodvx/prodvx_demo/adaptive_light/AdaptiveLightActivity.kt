@@ -175,6 +175,7 @@ class AdaptiveLightActivity : ComponentActivity() {
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 if (myService != null) {
+                    Text(text = "Vertical offset")
                     Slider (
                         modifier = Modifier.width(400.dp),
                         value = myService.verticalOffset.toFloat(),
@@ -183,11 +184,14 @@ class AdaptiveLightActivity : ComponentActivity() {
                             myService.verticalOffset = newVal
                             vertical = newVal - 40
                             localVertical = newVal - 20 },
-                        valueRange = 20f..300f,
-                        steps = 58,
+                        valueRange = 20f..360f,
+                        steps = 40
                     )
-                    Text(text = "Vertical offset: ${localVertical}")
-                    if(myService.verticalOffset < 40) Text(text= "Vertical Offset should be 20 or greater to ignore system bars", color = Color.Red)
+//                    if(myService.verticalOffset < 40) Text(text= "Warning: Vertical Offset should be 20 or greater to ignore system bars", color = Color.Red)
+                    if(myService.verticalOffset < 40) Text(text= "Warning: Increase vertical offset to ignore system bars", color = Color.Red)
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = "Horizontal offset")
                     Slider (
                         modifier = Modifier.width(400.dp),
                         value = myService.horizontalOffset.toFloat(),
@@ -195,11 +199,10 @@ class AdaptiveLightActivity : ComponentActivity() {
                             val newVal = (newValue / 5).roundToInt() * 5
                             myService.horizontalOffset = newVal
                             horizontal = newVal - 40 },
-                        valueRange = 40f..300f,
-                        steps = 56,
+                        valueRange = 40f..640f,
+                        steps = 40
                     )
 
-                    Text(text = "Horizontal offset: $horizontal")
                     if(!hide) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically
@@ -247,6 +250,7 @@ class AdaptiveLightActivity : ComponentActivity() {
                         }) {
                             Text("Stop Adaptive Lights")
                         }
+                        Spacer(modifier = Modifier.height(16.dp))
                         Button(onClick = {finish()} ) { Text("Go Back")}
                     }
                 }
