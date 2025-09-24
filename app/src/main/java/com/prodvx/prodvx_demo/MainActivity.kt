@@ -38,6 +38,9 @@ class MainActivity : ComponentActivity() {
             AndroidTestTheme {
                 var dev by remember{mutableStateOf(false)}
 
+                /**
+                 * Dev Build
+                 */
 //                Row(
 //                    verticalAlignment = Alignment.CenterVertically,
 //                    modifier = Modifier
@@ -59,16 +62,16 @@ class MainActivity : ComponentActivity() {
 
                 ) {
                     val adaptiveLightIntent = Intent(this@MainActivity, AdaptiveLightActivity::class.java)
-                    val nfcIntent = Intent(this@MainActivity, NfcActivity::class.java)
-                    val ledIntent = Intent(this@MainActivity, LedActivity::class.java)
-
-                    val testIntent = Intent(this@MainActivity, TestActivity::class.java)
-
                     ActivityLauncher(this@MainActivity, adaptiveLightIntent, "Adaptive Lighting")
-                    ActivityLauncher(this@MainActivity, nfcIntent, "NFC")
+                    val ledIntent = Intent(this@MainActivity, LedActivity::class.java)
                     ActivityLauncher(this@MainActivity, ledIntent, "LED Demo")
 
+
+
                     if(dev) {
+                        val nfcIntent = Intent(this@MainActivity, NfcActivity::class.java)
+                        ActivityLauncher(this@MainActivity, nfcIntent, "NFC")
+                        val testIntent = Intent(this@MainActivity, TestActivity::class.java)
                         ActivityLauncher(this@MainActivity, testIntent, "Test")
                         Button(onClick = {
                             val intent = Intent(Settings.ACTION_WIRELESS_SETTINGS)
