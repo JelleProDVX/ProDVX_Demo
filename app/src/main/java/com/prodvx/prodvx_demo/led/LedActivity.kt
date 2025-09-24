@@ -7,15 +7,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.prodvx.prodvx_demo.LRGB
 import com.prodvx.prodvx_demo.api.sendRequest
 import com.prodvx.prodvx_demo.ui.theme.AndroidTestTheme
@@ -25,6 +32,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class LedActivity : ComponentActivity() {
+
+    fun <T> Iterable<T>.times(count: Int) = (1..count).flatMap { this }
+    private val halfBlueHalfRed = listOf("0x010000FF").times(18) + listOf("0x01FF0000").times(27) + listOf("0x010000FF").times(9)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,21 +47,49 @@ class LedActivity : ComponentActivity() {
                     verticalArrangement = Arrangement.Center
                 ) {
                     var text by remember { mutableStateOf("") }
-                    Button (
-                        onClick = {
-                            changeLedColorSdk(applicationContext, 0, 0x01FF0000)
-                            text = "Using SDK: Intent with action.CHANGE_LED_COLOR, and Extras 'color', 0x01FF0000"
-                        }) {
-                            Text("Set Leds Red using SDK")
-                        }
-                    Button (
-                        onClick = {
-                            changeLedColorSdk(applicationContext, 0, 0x0100FF00)
-                            text = "Using SDK: Intent with action.CHANGE_LED_COLOR, and Extras 'color', 0x0100FF00"
-                        }
-                    ) {
-                        Text("Set Leds Green using SDK")
+                    val mod = Modifier.fillMaxWidth()
+                    val buttons = listOf(
+                        Button (
+                            modifier = mod,
+                            onClick = {
+                                changeLedColorSdk(applicationContext, 0, 0x01FF0000)
+                                text = "Using SDK: Intent with action.CHANGE_LED_COLOR, and Extras 'color', 0x01FF0000"
+                            }) { Text("SDK: Set Leds Red")},
+                        Button (
+                            modifier = mod,
+                            onClick = {
+                                changeLedColorSdk(applicationContext, 0, 0x0100FF00)
+                                text = "Using SDK: Intent with action.CHANGE_LED_COLOR, and Extras 'color', 0x0100FF00"
+                            }) { Text("SDK: Set Leds Green") },
+                        Button(
+                            modifier = mod,
+                            onClick = {
+                                changeLedColorSdk(applicationContext, 0, 0x010000FF)
+                                text = "Using SDK: Intent with action.CHANGE_LED_COLOR, and Extras 'color', 0x0100FF00"
+                            }) { Text("SDK: Set Leds Blue") },
+//                        Button(
+//                            modifier = mod,
+//                            onClick = {
+//                                changeLedColorSdk(applicationContext, 0, 0x010000FF)
+//                                text = "Using SDK: Intent with action.CHANGE_LED_COLOR, and Extras 'color', 0x0100FF00"
+//                            }) { Text("SDK: Set Leds Half Blue Half Red") },
+                    )
+
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                    ){
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(5),
+                            contentPadding = PaddingValues(16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.SpaceAround,
+                            modifier = Modifier
+                                .weight(1f)
+                        ){ items(buttons) {} }
                     }
+
+
                     Button (
                         onClick = {
                             changeLedColorApi(LRGB(255, 0, 0, 255))
@@ -78,7 +116,6 @@ fun changeLedColorSdk(context: Context, colordemo: Int, color: Int?) {
     val intent = Intent("action.CHANGE_LED_COLOR")
 
     if(colordemo < 0 || colordemo > 5) {
-        //Invalid value
         return
     }
 
