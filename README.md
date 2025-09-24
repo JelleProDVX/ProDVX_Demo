@@ -20,7 +20,10 @@ _To Come_:
   - Insert USB into APPC device
   - Install using USB
 - Or
-  - Install using ADB
+  - Install using ADB with 
+```
+adb install ProDVX_Demo_V1.0.apk // make sure to chec kversion nr
+```
  
 ## Usage
 ### Without API:
