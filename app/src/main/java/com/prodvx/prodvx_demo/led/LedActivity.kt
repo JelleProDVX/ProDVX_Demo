@@ -105,6 +105,13 @@ class LedActivity : ComponentActivity() {
                     }) {
                         Text("S-Series Led Demo")
                     }
+                    Button(
+                        onClick= {
+                            this@LedActivity.finish()
+                        }
+                    ) {
+                        Text("Go Back")
+                    }
                 }
             }
         }

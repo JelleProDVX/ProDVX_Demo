@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.prodvx.prodvx_demo.adaptive_light.AdaptiveLightActivity
+import com.prodvx.prodvx_demo.api.TOKEN
 import com.prodvx.prodvx_demo.api.updateToken
 import com.prodvx.prodvx_demo.led.LedActivity
 import com.prodvx.prodvx_demo.nfc.NfcActivity
@@ -97,7 +98,7 @@ class MainActivity : ComponentActivity() {
                     verticalArrangement = Arrangement.Center,
                 ) {
                     val adaptiveLightIntent = Intent(this@MainActivity, AdaptiveLightActivity::class.java)
-                    ActivityLauncher(this@MainActivity, adaptiveLightIntent, "Adaptive Lighting", apiToken != null)
+                    ActivityLauncher(this@MainActivity, adaptiveLightIntent, "Adaptive Lighting", TOKEN != null && TOKEN != "")
                     val ledIntent = Intent(this@MainActivity, LedActivity::class.java)
                     ActivityLauncher(this@MainActivity, ledIntent, "LED Demo")
 

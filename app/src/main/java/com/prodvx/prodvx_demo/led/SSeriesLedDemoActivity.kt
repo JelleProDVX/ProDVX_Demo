@@ -1,5 +1,6 @@
 package com.prodvx.prodvx_demo.led
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -60,7 +61,7 @@ class SSeriesLedDemoActivity: ComponentActivity() {
         setContent {
             AndroidTestTheme {
                 Surface(modifier = Modifier.fillMaxSize()){
-                    LedDemoApp()
+                    LedDemoApp(this)
                 }
             }
         }
@@ -372,7 +373,9 @@ fun startLedRotation(
 }
 
 @Composable
-fun LedDemoApp() {
+fun LedDemoApp(ctx: Context?) {
+    val activity = ctx as ComponentActivity
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -385,16 +388,20 @@ fun LedDemoApp() {
 
         LedButtonsList(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(),
+            activity
         )
     }
 }
 
 @Composable
-fun LedButtonsList(modifier: Modifier = Modifier) {
+fun LedButtonsList(modifier: Modifier = Modifier, ctx: ComponentActivity) {
     val scope = rememberCoroutineScope()
+
     val currentSpeed = remember { mutableLongStateOf(100L) }
+
     val rotatingJob = remember { mutableStateOf<Job?>(null) }
+
     fun cancelRotation() {
         rotatingJob.value?.let {
             if (it.isActive) {
@@ -560,20 +567,6 @@ fun LedButtonsList(modifier: Modifier = Modifier) {
             border = BorderStroke(3.dp, Brush.sweepGradient(colors = greenPulseBorder))
         ),
         Action(
-            title = "",
-            call = { },
-        ),
-        Action(
-            title = "",
-            call = {
-                beginRotation(values = allGreen, delayMs = mutableLongStateOf(1000L) )
-                   },
-        ),
-        Action(
-            title = "",
-            call = { },
-        ),
-        Action(
             title = "Left Off",
             call = {
                 cancelRotation()
@@ -618,6 +611,22 @@ fun LedButtonsList(modifier: Modifier = Modifier) {
                     endX = Float.POSITIVE_INFINITY
                 )
             )
+        ),
+        Action(
+            title = "",
+            call = { cancelRotation() },
+        ),
+        Action(
+            title = "Go Back",
+            call = {
+                cancelRotation()
+                ctx.finish()
+            },
+            border = BorderStroke(3.dp, Color.DarkGray)
+        ),
+        Action(
+            title = "",
+            call = { cancelRotation() },
         )
     )
 
@@ -702,6 +711,6 @@ fun Header(
 @Composable
 fun MainPreview() {
     AndroidTestTheme {
-        LedDemoApp()
+        LedDemoApp(null)
     }
 }
